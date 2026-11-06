@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depo ve Teknisyen Stok Takip Paneli</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen pb-12">
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-blue-600 rounded-xl text-white shadow-md">
+                    <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">Depo ve Teknisyen Stok Takip Paneli</h1>
+                    <p class="text-xs text-slate-400">Kesintisiz ve Hızlı Envanter Yönetimi</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+        <!-- GÜVENLİK VE YEDEKLEME PANELİ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-emerald-50/70 border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-emerald-800">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                    <h2 class="font-bold text-base">Sistem Yedekleme ve Güvenlik Merkezi</h2>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="sistemiYedekleIndir()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i> Tüm Sistemi Yedekle (JSON İndir)
+                    </button>
+                    <button onclick="verileriSifirla()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> Tüm Verileri Sıfırla
+                    </button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3">
+                    <input type="file" id="yedekDosyaInput" accept=".json" class="block w-full sm:w-auto text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700">
+                    <button onclick="yedektenGeriYukle()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition flex items-center shadow-sm">
+                        <i class="fa-solid fa-folder-open mr-2"></i> Yedekten Geri Yükle
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2 SÜTUNLU YÖNETİM DÜZENİ -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- 1. PARÇA EKLEME -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-5">
+                <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                    <i class="fa-solid fa-box-archive text-blue-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-800">1. Yeni Parça Girişi</h2>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Manuel Parça Girişi</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="yeniParcaAd" placeholder="Parça Adı" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="yeniParcaLokasyon" placeholder="Lokasyon (Raf A-1)" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="number" id="yeniParcaMik" placeholder="Miktar" min="1" value="1" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <button onclick="parcaEkle()" class="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition shadow-sm flex items-center justify-center">
+                        <i class="fa-solid fa-plus mr-2"></i> Depoya Ekle
+                    </button>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Not Defteri ile Toplu Giriş</h3>
+                        <button onclick="ornekSablonIndir()" class="text-xs text-blue-600 hover:underline font-medium">
+                            <i class="fa-solid fa-download mr-1"></i> Örnek Şablon (.txt)
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500">Format: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">Parça Adı;Lokasyon;Miktar</code></p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="file" id="dosyaInput" accept=".txt, .csv" class="block w-full sm:w-auto text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700">
+                        <button onclick="topluDosyaYukle()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-medium transition shadow-sm">
+                            Dosyayı Yükle
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TEKNİSYEN YÖNETİMİ & PARÇA ATAMA -->
+            <div class="space-y-6">
+                <!-- TEKNİSYEN YÖNETİMİ -->
+                <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-users text-indigo-600 text-lg"></i>
+                        <h2 class="font-bold text-slate-800">2. Teknisyen Yönetimi</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="flex gap-2">
+                            <input type="text" id="yeniTechAd" placeholder="Yeni Teknisyen Adı" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button onclick="techEkle()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm whitespace-nowrap">Ekle</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="silTechSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></select>
+                            <button onclick="techSil()" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition shadow-sm whitespace-nowrap">Sil</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PARÇA ATAMA -->
+                <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+                    <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-handshake text-amber-600 text-lg"></i>
+                        <h2 class="font-bold text-slate-800">3. Parçayı Teknisyene Ata</h2>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">1. Parça Ara ve Seç:</label>
+                            <input type="text" id="ataParcaArama" placeholder="🔍 Parça adına göre ara..." onkeyup="onParcaAtaSearch(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm mb-2 focus:ring-2 focus:ring-amber-500 outline-none">
+                            <select id="ataParcaSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white"></select>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">2. Teknisyen Seç:</label>
+                                <select id="ataTechSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">3. Miktar:</label>
+                                <input type="number" id="ataMik" min="1" value="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="parcaAta()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-sm transition shadow-sm flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-right-arrow-left mr-2"></i> Teknisyene Zimmetle
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- 4. ANA DEPO STOK LİSTESİ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-warehouse text-slate-700 text-lg"></i>
+                    <h2 class="font-bold text-slate-800">4. Ana Depo Stok ve Lokasyon Listesi</h2>
+                    <span id="depoStokBadge" class="text-xs bg-slate-100 text-slate-600 font-medium px-2.5 py-0.5 rounded-full">0 Kalem</span>
+                </div>
+                <div class="w-full sm:w-72">
+                    <input type="text" id="depoAramaInput" placeholder="🔍 Parça veya lokasyon ara..." onkeyup="onDepoSearch(this.value)" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+            <div class="max-h-80 overflow-y-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs sticky top-0 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3">Parça Adı</th>
+                            <th class="px-4 py-3">Lokasyon</th>
+                            <th class="px-4 py-3">Mevcut Miktar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="depoTablo"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. TEKNİSYEN ZİMMETLERİ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 space-y-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-id-card text-emerald-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-800">5. Teknisyen Zimmet Görüntüleme ve İndirme</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Görüntülenecek Teknisyen:</label>
+                        <select id="goruntuleTechSelect" onchange="setZimmetTechFilter(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Listesi İndirilecek Teknisyen:</label>
+                        <div class="flex gap-2">
+                            <select id="excelTechSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white"></select>
+                            <button onclick="teknisyenStokAktar()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition shadow-sm whitespace-nowrap">
+                                <i class="fa-solid fa-file-arrow-down mr-1"></i> İndir (.txt)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs sticky top-0 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3">Teknisyen</th>
+                            <th class="px-4 py-3">Parça</th>
+                            <th class="px-4 py-3">Miktar</th>
+                            <th class="px-4 py-3">Son İşlem Tarihi</th>
+                            <th class="px-4 py-3">İşlem (İade / Hurda)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zimmetTablo"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 6. İŞLEM GEÇMİŞİ / LOG -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center space-x-2">
+                <i class="fa-solid fa-clock-rotate-left text-purple-600 text-lg"></i>
+                <h2 class="font-bold text-slate-800">6. Sistem İşlem Geçmişi (Log)</h2>
+            </div>
+            <div class="max-h-72 overflow-y-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-500 uppercase text-xs sticky top-0 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3">Tarih / Saat</th>
+                            <th class="px-4 py-3">İşlem Türü</th>
+                            <th class="px-4 py-3">Detay / Açıklama</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTablo"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="p-5 border-b border-slate-100">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-900">Onay</h3>
+            </div>
+            <div id="modalBody" class="p-5 text-sm text-slate-600 space-y-2"></div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium rounded-lg transition">İptal</button>
+                <button id="modalConfirmBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm">Onayla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const DEFAULT_TEKNISYENLER = ["ADEM YAMAN", "AHMET CEMAL", "AHMET ÖZDEMİR", "AYHAN AKLI", "BATİKAN KARA"];
+
+        let depo = {};
+        let zimmetler = [];
+        let teknisyenler = [...DEFAULT_TEKNISYENLER];
+        let islemGecmisi = [];
+        let activeZimmetTech = '';
+        let filterAtaParca = '';
+        let filterDepo = '';
+
+        function loadStorageState() {
+            try {
+                let savedDepo = localStorage.getItem('depoStok_v9');
+                if (savedDepo) depo = JSON.parse(savedDepo);
+
+                let savedZimmet = localStorage.getItem('teknisyenZimmet_v9');
+                if (savedZimmet) zimmetler = JSON.parse(savedZimmet);
+
+                let savedTech = localStorage.getItem('teknisyenler_v9');
+                if (savedTech) teknisyenler = JSON.parse(savedTech);
+
+                let savedLog = localStorage.getItem('islemGecmisi_v9');
+                if (savedLog) islemGecmisi = JSON.parse(savedLog);
+
+                if (!activeZimmetTech && teknisyenler.length > 0) {
+                    activeZimmetTech = teknisyenler[0];
+                }
+            } catch (e) {
+                console.error("Yükleme hatası:", e);
+            }
+        }
+
+        function saveStorageState(logDetay = null, logTur = "BİLGİ") {
+            if (logDetay) {
+                islemGecmisi.unshift({
+                    id: 'log_' + Date.now(),
+                    tarih: bugunTarihStr(),
+                    tur: logTur,
+                    detay: logDetay
+                });
+                if (islemGecmisi.length > 100) islemGecmisi.pop();
+            }
+
+            try {
+                localStorage.setItem('depoStok_v9', JSON.stringify(depo));
+                localStorage.setItem('teknisyenZimmet_v9', JSON.stringify(zimmetler));
+                localStorage.setItem('teknisyenler_v9', JSON.stringify(teknisyenler));
+                localStorage.setItem('islemGecmisi_v9', JSON.stringify(islemGecmisi));
+            } catch (e) {
+                console.error("Kaydetme hatası:", e);
+            }
+
+            renderUI();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            let bgBg = 'bg-slate-800';
+            let icon = 'fa-info-circle';
+            if (type === 'success') { bgBg = 'bg-emerald-600'; icon = 'fa-check-circle'; }
+            if (type === 'error') { bgBg = 'bg-rose-600'; icon = 'fa-exclamation-triangle'; }
+            if (type === 'warning') { bgBg = 'bg-amber-600'; icon = 'fa-exclamation-circle'; }
+
+            toast.className = `${bgBg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-3 transition-all duration-300 opacity-0 transform translate-y-2 text-sm font-medium pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function bugunTarihStr() {
+            let d = new Date();
+            return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function parcaEkle() {
+            let adInput = document.getElementById('yeniParcaAd');
+            let lokInput = document.getElementById('yeniParcaLokasyon');
+            let mikInput = document.getElementById('yeniParcaMik');
+
+            let ad = adInput.value.trim();
+            let lokasyon = lokInput.value.trim() || "Genel Depo";
+            let miktar = parseInt(mikInput.value);
+
+            if (!ad || isNaN(miktar) || miktar <= 0) {
+                showToast("Geçerli parça adı ve miktar giriniz!", "warning");
+                return;
+            }
+
+            let key = ad + "|" + lokasyon;
+            if (depo[key]) {
+                depo[key].miktar += miktar;
+            } else {
+                depo[key] = { ad: ad, lokasyon: lokasyon, miktar: miktar };
+            }
+
+            adInput.value = '';
+            lokInput.value = '';
+            mikInput.value = '1';
+
+            showToast(`Depoya eklendi: ${miktar} adet ${ad}`, "success");
+            saveStorageState(`Depoya eklendi: ${miktar} adet ${ad} (${lokasyon})`, "STOK GİRİŞİ");
+        }
+
+        function topluDosyaYukle() {
+            let fileInput = document.getElementById('dosyaInput');
+            if (fileInput.files.length === 0) {
+                showToast("Lütfen bir dosya seçin!", "warning");
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let lines = e.target.result.split(/\r\n|\n/);
+                let count = 0;
+                lines.forEach((line, index) => {
+                    if (!line.trim()) return;
+                    let parts = line.split(';');
+                    if (parts.length >= 3) {
+                        let ad = parts[0].trim().replace(/^["']|["']$/g, '');
+                        let lokasyon = parts[1].trim().replace(/^["']|["']$/g, '') || "Genel Depo";
+                        let miktar = parseInt(parts[2].trim());
+                        if (index === 0 && (ad.toLowerCase().includes('parça') || ad.toLowerCase().includes('parca'))) return;
+                        if (ad && !isNaN(miktar) && miktar > 0) {
+                            let key = ad + "|" + lokasyon;
+                            if (depo[key]) depo[key].miktar += miktar;
+                            else depo[key] = { ad: ad, lokasyon: lokasyon, miktar: miktar };
+                            count++;
+                        }
+                    }
+                });
+                fileInput.value = '';
+                if (count > 0) {
+                    showToast(`${count} kalem ürün eklendi!`, "success");
+                    saveStorageState(`Toplu dosya ile ${count} kalem ürün eklendi.`, "TOPLU GİRİŞ");
+                }
+            };
+            reader.readAsText(fileInput.files[0], 'UTF-8');
+        }
+
+        function ornekSablonIndir() {
+            let icerik = "ParcaAdi;Lokasyon;Adet\nMilwaukee Bits Uç 90mm PH2;Raf A-1;25\nKrom Serit Metre;Raf B-3;10";
+            let blob = new Blob([icerik], { type: 'text/plain;charset=utf-8;' });
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "ornek_stok_sablonu.txt";
+            a.click();
+        }
+
+        function techEkle() {
+            let input = document.getElementById('yeniTechAd');
+            let ad = input.value.trim().toUpperCase();
+            if (!ad) {
+                showToast("Teknisyen adı yazın!", "warning");
+                return;
+            }
+            if (teknisyenler.includes(ad)) {
+                showToast("Bu teknisyen zaten var!", "warning");
+                return;
+            }
+            teknisyenler.push(ad);
+            input.value = '';
+            showToast(`${ad} eklendi.`, "success");
+            saveStorageState(`${ad} isimli teknisyen sisteme eklendi.`, "TEKNİSYEN");
+        }
+
+        function techSil() {
+            let select = document.getElementById('silTechSelect');
+            let secilen = select.value;
+            if (!secilen) return;
+
+            if (zimmetler.some(z => z.teknisyen === secilen && z.miktar > 0)) {
+                showToast("Üzerinde zimmet olan teknisyen silinemez!", "error");
+                return;
+            }
+
+            openModal("Teknisyen Sil", `<b>${secilen}</b> silinsin mi?`, () => {
+                teknisyenler = teknisyenler.filter(t => t !== secilen);
+                showToast(`${secilen} silindi.`, "info");
+                saveStorageState(`${secilen} isimli teknisyen silindi.`, "TEKNİSYEN");
+            });
+        }
+
+        function parcaAta() {
+            let key = document.getElementById('ataParcaSelect').value;
+            let teknisyen = document.getElementById('ataTechSelect').value;
+            let miktar = parseInt(document.getElementById('ataMik').value);
+
+            if (!key || !teknisyen) {
+                showToast("Parça ve teknisyen seçin!", "warning");
+                return;
+            }
+            let pObj = depo[key];
+            if (!pObj || pObj.miktar < miktar) {
+                showToast("Yetersiz stok!", "error");
+                return;
+            }
+
+            pObj.miktar -= miktar;
+            if (pObj.miktar === 0) delete depo[key];
+
+            let tarihStr = bugunTarihStr();
+            let mevc = zimmetler.find(z => z.teknisyen === teknisyen && z.parca === pObj.ad);
+            if (mevc) {
+                mevc.miktar += miktar;
+                mevc.tarih = tarihStr;
+            } else {
+                zimmetler.push({ id: 'z_' + Date.now() + '_' + Math.random().toString(36).substring(2,6), teknisyen: teknisyen, parca: pObj.ad, miktar: miktar, tarih: tarihStr });
+            }
+
+            document.getElementById('ataMik').value = '1';
+            showToast(`${teknisyen} teknisyenine zimmetlendi.`, "success");
+            saveStorageState(`${teknisyen} adlı teknisyene ${miktar} adet ${pObj.ad} zimmetlendi.`, "ZİMMET");
+        }
+
+        function iadeAl(zimmetId) {
+            let inputEl = document.getElementById(`iade_mik_${zimmetId}`);
+            let miktar = parseInt(inputEl.value);
+            let zIndex = zimmetler.findIndex(item => item.id === zimmetId);
+            if (zIndex === -1) return;
+            let z = zimmetler[zIndex];
+
+            if (isNaN(miktar) || miktar <= 0 || miktar > z.miktar) {
+                showToast("Geçersiz miktar!", "warning");
+                return;
+            }
+
+            z.miktar -= miktar;
+            z.tarih = bugunTarihStr();
+            if (z.miktar === 0) zimmetler.splice(zIndex, 1);
+
+            let key = z.parca + "|Ana Depo (İade)";
+            if (depo[key]) depo[key].miktar += miktar;
+            else depo[key] = { ad: z.parca, lokasyon: "Ana Depo (İade)", miktar: miktar };
+
+            showToast(`${z.parca} iade alındı.`, "success");
+            saveStorageState(`${z.teknisyen} teknisyeninden ${miktar} adet ${z.parca} iade alındı.`, "İADE");
+        }
+
+        function hurdayaAt(zimmetId) {
+            let inputEl = document.getElementById(`iade_mik_${zimmetId}`);
+            let miktar = parseInt(inputEl.value);
+            let zIndex = zimmetler.findIndex(item => item.id === zimmetId);
+            if (zIndex === -1) return;
+            let z = zimmetler[zIndex];
+
+            if (isNaN(miktar) || miktar <= 0 || miktar > z.miktar) {
+                showToast("Geçersiz miktar!", "warning");
+                return;
+            }
+
+            openModal("Hurdaya Ayır", `${miktar} adet ${z.parca} hurdaya ayrılsın mı?`, () => {
+                z.miktar -= miktar;
+                z.tarih = bugunTarihStr();
+                if (z.miktar === 0) zimmetler.splice(zIndex, 1);
+                showToast("Hurdaya ayrıldı.", "info");
+                saveStorageState(`${z.teknisyen} üzerindeki ${miktar} adet ${z.parca} hurdaya ayrıldı.`, "HURDA");
+            });
+        }
+
+        function teknisyenStokAktar() {
+            let tech = document.getElementById('excelTechSelect').value;
+            let liste = zimmetler.filter(z => z.teknisyen === tech);
+            if (liste.length === 0) {
+                showToast("Zimmet bulunamadı!", "warning");
+                return;
+            }
+            let icerik = `TEKNİSYEN ZİMMET RAPORU - ${tech}\nParcaAdi;Adet;SonIslemTarihi\n`;
+            liste.forEach(z => icerik += `${z.parca};${z.miktar};${z.tarih || '-'}\n`);
+            let blob = new Blob([icerik], { type: 'text/plain;charset=utf-8;' });
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${tech}_zimmet.txt`;
+            a.click();
+        }
+
+        function sistemiYedekleIndir() {
+            let veriPaketi = { depoStok: depo, teknisyenZimmet: zimmetler, teknisyenler: teknisyenler, islemGecmisi: islemGecmisi };
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veriPaketi, null, 2));
+            let a = document.createElement('a');
+            a.href = dataStr;
+            a.download = `depo_yedek_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            showToast("Yedek indirildi.", "success");
+        }
+
+        function yedektenGeriYukle() {
+            let fileInput = document.getElementById('yedekDosyaInput');
+            if (fileInput.files.length === 0) {
+                showToast("Dosya seçin!", "warning");
+                return;
+            }
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let yedekVeri = JSON.parse(e.target.result);
+                    depo = yedekVeri.depoStok || {};
+                    zimmetler = yedekVeri.teknisyenZimmet || [];
+                    teknisyenler = yedekVeri.teknisyenler || [...DEFAULT_TEKNISYENLER];
+                    islemGecmisi = yedekVeri.islemGecmisi || [];
+                    fileInput.value = '';
+                    showToast("Yedek yüklendi!", "success");
+                    saveStorageState("Yedekten geri yükleme yapıldı.", "SİSTEM");
+                } catch (err) { showToast("Dosya okunamadı!", "error"); }
+            };
+            reader.readAsText(fileInput.files[0], 'UTF-8');
+        }
+
+        function verileriSifirla() {
+            openModal("Sıfırla", "Tüm veriler silinecek?", () => {
+                localStorage.clear();
+                depo = {};
+                zimmetler = [];
+                teknisyenler = [...DEFAULT_TEKNISYENLER];
+                islemGecmisi = [];
+                showToast("Sistem sıfırlandı.", "info");
+                saveStorageState("Sistem sıfırlandı.", "SİSTEM");
+            });
+        }
+
+        function openModal(title, contentHtml, onConfirm) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = contentHtml;
+            let confirmBtn = document.getElementById('modalConfirmBtn');
+            let newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            newBtn.addEventListener('click', () => { closeModal(); if (onConfirm) onConfirm(); });
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('customModal').classList.add('hidden'); }
+
+        function onParcaAtaSearch(val) { filterAtaParca = val.toLowerCase(); renderParcaAtaSelect(); }
+        function onDepoSearch(val) { filterDepo = val.toLowerCase(); renderDepoTable(); }
+        function setZimmetTechFilter(val) { activeZimmetTech = val; renderZimmetTable(); }
+
+        function renderUI() {
+            renderTeknisyenSelects();
+            renderParcaAtaSelect();
+            renderDepoTable();
+            renderZimmetTable();
+            renderLogTable();
+        }
+
+        function renderTeknisyenSelects() {
+            let optsHtml = teknisyenler.map(t => `<option value="${t}">${t}</option>`).join('');
+            document.getElementById('silTechSelect').innerHTML = optsHtml;
+            document.getElementById('ataTechSelect').innerHTML = optsHtml;
+            document.getElementById('excelTechSelect').innerHTML = optsHtml;
+            let gorSelect = document.getElementById('goruntuleTechSelect');
+            if (gorSelect) {
+                gorSelect.innerHTML = optsHtml;
+                if (activeZimmetTech && teknisyenler.includes(activeZimmetTech)) gorSelect.value = activeZimmetTech;
+            }
+        }
+
+        function renderParcaAtaSelect() {
+            let selectEl = document.getElementById('ataParcaSelect');
+            let keys = Object.keys(depo);
+            let opts = '', count = 0;
+            keys.forEach(k => {
+                let p = depo[k];
+                if (!filterAtaParca || (p.ad + ' ' + p.lokasyon).toLowerCase().includes(filterAtaParca)) {
+                    opts += `<option value="${k}">${p.ad} [${p.lokasyon}] (Stok: ${p.miktar})</option>`;
+                    count++;
+                }
+            });
+            selectEl.innerHTML = count === 0 ? '<option value="">Parça bulunamadı</option>' : opts;
+        }
+
+        function renderDepoTable() {
+            let tbody = document.getElementById('depoTablo');
+            let keys = Object.keys(depo);
+            let rowsHtml = '', count = 0;
+
+            keys.forEach(k => {
+                let p = depo[k];
+                if (!filterDepo || (p.ad + ' ' + p.lokasyon).toLowerCase().includes(filterDepo)) {
+                    count++;
+                    rowsHtml += `<tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="px-4 py-3 font-medium">${p.ad}</td>
+                        <td class="px-4 py-3 text-slate-600"><span class="bg-slate-100 px-2 py-0.5 rounded text-xs">${p.lokasyon}</span></td>
+                        <td class="px-4 py-3 font-semibold text-emerald-700">${p.miktar} Adet</td>
+                    </tr>`;
+                }
+            });
+            tbody.innerHTML = rowsHtml || `<tr><td colspan="3" class="px-4 py-6 text-center text-slate-400">Depo boş.</td></tr>`;
+            document.getElementById('depoStokBadge').innerText = `${keys.length} Kalem`;
+        }
+
+        function renderZimmetTable() {
+            let tbody = document.getElementById('zimmetTablo');
+            let filteredZimmet = zimmetler.filter(z => z.teknisyen === activeZimmetTech);
+            let rowsHtml = '';
+            filteredZimmet.forEach(z => {
+                rowsHtml += `<tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="px-4 py-3 font-medium">${z.teknisyen}</td>
+                    <td class="px-4 py-3">${z.parca}</td>
+                    <td class="px-4 py-3 font-semibold text-blue-600">${z.miktar} Adet</td>
+                    <td class="px-4 py-3 text-xs text-slate-500">${z.tarih || '-'}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center space-x-2">
+                            <input type="number" id="iade_mik_${z.id}" value="1" min="1" max="${z.miktar}" class="w-14 px-2 py-1 text-sm border rounded">
+                            <button onclick="iadeAl('${z.id}')" class="px-2 py-1 text-xs bg-emerald-600 text-white rounded">İade</button>
+                            <button onclick="hurdayaAt('${z.id}')" class="px-2 py-1 text-xs bg-rose-600 text-white rounded">Hurda</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = rowsHtml || `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">Zimmet yok.</td></tr>`;
+        }
+
+        function renderLogTable() {
+            let tbody = document.getElementById('logTablo');
+            let rowsHtml = '';
+            islemGecmisi.forEach(l => {
+                rowsHtml += `<tr class="hover:bg-slate-50 border-b border-slate-100 text-xs">
+                    <td class="px-4 py-2 font-medium text-slate-500">${l.tarih}</td>
+                    <td class="px-4 py-2 font-bold text-blue-600">[${l.tur}]</td>
+                    <td class="px-4 py-2 text-slate-700">${l.detay}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = rowsHtml || `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-400 text-xs">Kayıt yok.</td></tr>`;
+        }
+
+        window.onload = function() {
+            loadStorageState();
+            renderUI();
+        };
+    </script>
+</body>
+</html>
